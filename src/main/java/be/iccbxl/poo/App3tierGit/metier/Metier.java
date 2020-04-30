@@ -11,12 +11,22 @@ import be.iccbxl.poo.App3tierGit.entities.Person;
 public class Metier implements IMetier {
 
 	private IDao dao;
-	
-	private List<Person> people;
+
+	private List<Person> people = new ArrayList<Person>();
 	
 	public Metier() {
-		people = new ArrayList<Person>();
-		dao = new DaoFile();
+	}
+	
+	public Metier(IDao dao) {
+		this.dao = dao;
+	}
+	
+	public IDao getDao() {
+		return dao;
+	}
+
+	public void setDao(IDao dao) {
+		this.dao = dao;
 	}
 
 	public int computeRemainingDays(Book b) {	
@@ -49,6 +59,11 @@ public class Metier implements IMetier {
 
 	public void unregister(Person p) {
 		dao.delete(p);
+	}
+	
+	@Override
+	public List<Person> findByName(String name) {
+		return dao.findBy("name", name);
 	}
 
 }

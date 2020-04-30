@@ -11,6 +11,7 @@ public interface IMetier {
 	public void register(Person p);
 	public void update(Person p);
 	public void unregister(Person p);
+	public List<Person> findByName(String name);
 	
 	//Business Logic
 	public int computeRemainingDays(Book b);

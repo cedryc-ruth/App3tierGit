@@ -14,16 +14,25 @@ public class UiConsole implements IUi {
 
 	private IMetier metier;
 	
-	private Scanner s;
+	private Scanner s = new Scanner(System.in);
 
-	private List<Person> membres;
+	private List<Person> membres = new ArrayList<Person>();
 	
 	private String message;
 
 	public UiConsole() {
-		s = new Scanner(System.in);
-		metier = new Metier();
-		membres = new ArrayList<Person>();
+	}
+	
+	public UiConsole(IMetier metier) {
+		this.metier = metier;
+	}
+
+	public IMetier getMetier() {
+		return metier;
+	}
+
+	public void setMetier(IMetier metier) {
+		this.metier = metier;
 	}
 
 	public void run() {

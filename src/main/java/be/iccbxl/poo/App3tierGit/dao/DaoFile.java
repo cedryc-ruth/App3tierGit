@@ -1,35 +1,46 @@
 package be.iccbxl.poo.App3tierGit.dao;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+
 import be.iccbxl.poo.App3tierGit.entities.Person;
 
 public class DaoFile implements IDao {
 
-	private List<Person> people;
+	private List<Person> people = new ArrayList<Person>();
 	private String filename;
 	
 	public DaoFile() {
-		people = new ArrayList<Person>();
+		this.filename = "data\\membres.xml";
 	}
 
 	public DaoFile(String filename) {
-		this.people = new ArrayList<Person>();
+		this.filename = filename;
+	}
+	
+	public String getFilename() {
+		return filename;
+	}
+
+	public void setFilename(String filename) {
 		this.filename = filename;
 	}
 
 	public List<Person> findAll() {
-		//TODO écrire le code de lecture du fichier
-		Person bob = new Person(UUID.fromString("a7aa0ae7-9ce3-44bc-a72a-894edb9a4653"), "Bob Smith");
-		Person julie = new Person(UUID.fromString("02417998-c4fb-41d8-96b3-6b7d0db7aa97"), "Julie Dern");
-		Person mike = new Person(UUID.fromString("3a50a4dc-f518-427b-b24e-078e252a6e4a"), "Mike Dougs");
-		
-		this.people.add(bob);
-		this.people.add(julie);
-		this.people.add(mike);
+		this.people = readXMLFile(filename);
 		
 		return people;
 	}
@@ -52,8 +63,44 @@ public class DaoFile implements IDao {
 	}
 
 	public List<Person> findBy(String property, String value) {
-		// TODO Auto-generated method stub
-		return null;
+findAll();
+		
+		ArrayList<Person> result = new ArrayList<Person>();
+		
+		String getterName = "get"+property.substring(0,1).toUpperCase()+property.substring(1);
+		Method method =	null;
+		
+		try {
+			method = Person.class.getDeclaredMethod(getterName, null);
+			
+			Iterator<Person> it = this.people.iterator();
+			
+			while(it.hasNext()) {
+				Person p = it.next();
+				String ps = method.invoke(p).toString();
+				
+				if(ps.equals(value)) {
+					result.add(p);
+				}
+			}
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return result;
 	}
 
 	public void delete(UUID id) {
@@ -70,12 +117,23 @@ public class DaoFile implements IDao {
 			}
 		}
 		
-		//TODO écrire le code de l'écriture du fichier
+		//Ecriture des données
+		writeXMLFile(filename, this.people);
 	}
 
 	public void delete(Person p) {
-		// TODO Auto-generated method stub
-
+		Iterator<Person> it = people.iterator();
+		
+		while(it.hasNext()) {
+			Person currentPerson = it.next();
+			
+			if(currentPerson.equals(p)) {
+				it.remove();
+			}
+		}
+		
+		//Ecriture des données
+		writeXMLFile(filename, this.people);
 	}
 
 	public void update(Person p) {
@@ -98,7 +156,8 @@ public class DaoFile implements IDao {
 			people.add(p);
 		}
 		
-		//TODO écrire le code de l'écriture du fichier
+		//Ecriture des données
+		writeXMLFile(filename, this.people);
 	}
 
 	public void save(Person p) {
@@ -121,7 +180,92 @@ public class DaoFile implements IDao {
 			people.add(p);
 		}
 		
-		//TODO écrire le code de l'écriture du fichier
+		//Ecriture des données
+		writeXMLFile(filename, this.people);
+	}
+	
+	private List<Person> readXMLFile(String filename) {
+		List<Person> list = new ArrayList<Person>();
+		
+		String xml = readFile(filename);
+		
+		list = convertFromXMLStringtoList(xml);
+		
+		return list;
+	}
+
+	private List<Person> convertFromXMLStringtoList(String xml) {
+		XStream xs = new XStream(new DomDriver());
+		
+		//Configuration du parser XML
+		xs.alias("person", Person.class);
+		
+		return (List<Person>) xs.fromXML(xml);
+	}
+
+	private String readFile(String filename) {
+		String content = null;
+		String line = null;
+		StringBuilder sb = new StringBuilder();
+		File f = new File(filename);
+		FileReader fr = null;
+		BufferedReader br = null;
+		
+		if(f.exists()) {
+			try {
+				try {
+					fr = new FileReader(f);
+					br = new BufferedReader(fr);
+					
+					while((line = br.readLine()) != null) {
+						sb.append(line);
+					}
+				} finally {
+					br.close();
+					fr.close();
+					System.out.println("Fin de lecture");
+				}
+			} catch(Exception e) {
+				
+			}
+		}
+		
+		return sb.toString();
+	}
+
+	private void writeXMLFile(String filename, List<Person> people) {
+		File f = new File(filename);
+		FileWriter fr = null;
+		BufferedWriter br = null;
+		
+		XStream xs = new XStream(new DomDriver());
+		
+		//Configuration du parser XML
+		xs.alias("person", Person.class);
+		
+		if(!f.exists()) {
+			try {
+				f.createNewFile();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		
+		try {
+			try {
+				fr = new FileWriter(f);
+				br = new BufferedWriter(fr);
+				
+				xs.toXML(people, br);
+			} finally {
+				br.close();
+				fr.close();
+				System.out.println("Fin d'écriture.");
+			}
+		} catch(Exception e) {
+			
+		}
 	}
 
 }

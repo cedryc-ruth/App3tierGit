@@ -1,25 +1,29 @@
 package be.iccbxl.poo.App3tierGit;
 
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
 import be.iccbxl.poo.App3tierGit.ui.IUi;
-import be.iccbxl.poo.App3tierGit.ui.UiConsole;
 
 /**
  * Hello world!
  *
  */
-public class App 
+@SpringBootApplication
+public class App implements CommandLineRunner
 {
 	private static IUi ui;
-	
-    public App() {
-		ui = new UiConsole();
-	}
 
 	public static void main( String[] args )
     {
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("spring-config.xml");
+		
+		ui = (IUi) ctx.getBean("uiConsole");
+		
         //Avant lancement du programme
 		System.out.println( "Bonjour et bienvenue!" );
-        new App();
         
         //Lancement du programme
         ui.run();
@@ -27,4 +31,9 @@ public class App
         //Après la fin du programme
         System.out.println("Merci d'avoir utilisé ce programme.");
     }
+
+	public void run(String... args) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 }
